@@ -8,6 +8,8 @@ This package is intentionally small. It exposes local Android Gemini Nano status
 
 Experimental. The Android ML Kit GenAI APIs used here are early and device support varies by Android version, AICore availability, model download state, and Google Play services configuration.
 
+Call `getStatus()` before running inference. `describeImage()` and `prompt()` run only when their corresponding feature status is `"available"`. For `"downloadable"` or `"downloading"` states, call `warmup()` and retry after `getStatus()` reports `"available"`.
+
 ## Platform Support
 
 - Android: supported in Expo development builds and native builds.
@@ -59,13 +61,15 @@ type GeminiNanoFeatureStatus =
   | "unknown";
 ```
 
+On iOS, web, Expo Go, or Android apps without the linked native module, this returns `"unsupported"` statuses instead of throwing at import time.
+
 ### `warmup()`
 
 Prepares the image description inference engine when available and warms prompt generation when supported. Apps should call this before a latency-sensitive flow, not on every render.
 
 ### `describeImage({ uri })`
 
-Runs local image description for a file URI and returns:
+Runs local image description for a `file://` or Android `content://` image URI and returns:
 
 ```ts
 type GeminiNanoImageDescription = {
@@ -78,6 +82,15 @@ type GeminiNanoImageDescription = {
 ### `prompt({ text })`
 
 Runs local text prompt generation.
+
+Returns:
+
+```ts
+type GeminiNanoPromptResponse = {
+  text: string;
+  status: GeminiNanoFeatureStatus;
+};
+```
 
 ## App Responsibilities
 

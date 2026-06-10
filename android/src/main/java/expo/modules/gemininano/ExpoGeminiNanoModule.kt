@@ -1,5 +1,6 @@
 package expo.modules.gemininano
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -14,7 +15,6 @@ import com.google.mlkit.genai.prompt.TextPart
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
-import java.net.URI
 import kotlinx.coroutines.runBlocking
 
 class ExpoGeminiNanoModule : Module() {
@@ -64,14 +64,12 @@ class ExpoGeminiNanoModule : Module() {
         throw IllegalStateException("Gemini Nano image description requires Android API 26 or newer.")
       }
 
-      val bitmap = decodeBitmap(uri)
+      val bitmap = decodeBitmap(context, uri)
       val imageDescriber = ImageDescription.getClient(ImageDescriberOptions.builder(context).build())
 
       try {
         val status = imageDescriber.checkFeatureStatus().get()
-        if (status == FeatureStatus.UNAVAILABLE) {
-          throw IllegalStateException("Gemini Nano image description is unavailable on this device.")
-        }
+        requireAvailable(status, "Gemini Nano image description")
 
         val request = ImageDescriptionRequest.builder(bitmap).build()
         val result = imageDescriber.runInference(request).get()
@@ -99,9 +97,7 @@ class ExpoGeminiNanoModule : Module() {
       try {
         val promptResult = runBlocking {
           val status = generator.checkStatus()
-          if (status == FeatureStatus.UNAVAILABLE) {
-            throw IllegalStateException("Gemini Nano Prompt API is unavailable on this device.")
-          }
+          requireAvailable(status, "Gemini Nano Prompt API")
 
           val request = GenerateContentRequest.Builder(TextPart(text)).build()
           val response = generator.generateContent(request)
@@ -160,21 +156,25 @@ class ExpoGeminiNanoModule : Module() {
       "message" to message
     )
 
-  private fun decodeBitmap(uriString: String): Bitmap {
+  private fun decodeBitmap(context: Context, uriString: String): Bitmap {
     val normalizedUri = Uri.parse(uriString)
-    val path = when (normalizedUri.scheme) {
-      "file" -> normalizedUri.path
-      null -> uriString
-      else -> URI(uriString).path
-    } ?: throw IllegalArgumentException("Could not resolve image uri.")
 
-    val file = File(path)
-    if (!file.exists()) {
-      throw IllegalArgumentException("Image file does not exist at uri.")
+    return when (normalizedUri.scheme) {
+      "content" -> context.contentResolver.openInputStream(normalizedUri)?.use { inputStream ->
+        BitmapFactory.decodeStream(inputStream)
+      } ?: throw IllegalArgumentException("Could not decode image bitmap from content uri.")
+      "file", null -> {
+        val path = if (normalizedUri.scheme == "file") normalizedUri.path else uriString
+        val file = File(path ?: throw IllegalArgumentException("Could not resolve image uri."))
+        if (!file.exists()) {
+          throw IllegalArgumentException("Image file does not exist at uri.")
+        }
+
+        BitmapFactory.decodeFile(file.absolutePath)
+          ?: throw IllegalArgumentException("Could not decode image bitmap.")
+      }
+      else -> throw IllegalArgumentException("Image uri scheme is not supported. Use file:// or content://.")
     }
-
-    return BitmapFactory.decodeFile(file.absolutePath)
-      ?: throw IllegalArgumentException("Could not decode image bitmap.")
   }
 
   private fun statusToString(@FeatureStatus status: Int): String =
@@ -185,5 +185,19 @@ class ExpoGeminiNanoModule : Module() {
       FeatureStatus.UNAVAILABLE -> "unavailable"
       else -> "unknown"
     }
+
+  private fun requireAvailable(@FeatureStatus status: Int, featureName: String) {
+    when (status) {
+      FeatureStatus.AVAILABLE -> return
+      FeatureStatus.DOWNLOADABLE ->
+        throw IllegalStateException("$featureName model is downloadable. Call warmup(), then retry when status is available.")
+      FeatureStatus.DOWNLOADING ->
+        throw IllegalStateException("$featureName model is downloading. Retry when status is available.")
+      FeatureStatus.UNAVAILABLE ->
+        throw IllegalStateException("$featureName is unavailable on this device.")
+      else ->
+        throw IllegalStateException("$featureName status is unknown.")
+    }
+  }
 
 }

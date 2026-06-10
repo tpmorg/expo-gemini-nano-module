@@ -31,12 +31,19 @@ export type PromptPayload = {
   text: string;
 };
 
+export type GeminiNanoPromptResponse = {
+  text: string;
+  status: GeminiNanoFeatureStatus;
+};
+
 type ExpoGeminiNanoNativeModule = {
   getStatus(): Promise<GeminiNanoStatus>;
   describeImage(payload: DescribeImagePayload): Promise<GeminiNanoImageDescription>;
-  prompt(payload: PromptPayload): Promise<{ text: string; status: GeminiNanoFeatureStatus; baseModelName?: string }>;
+  prompt(payload: PromptPayload): Promise<GeminiNanoPromptResponse>;
   warmup(): Promise<GeminiNanoStatus>;
 };
+
+const unsupportedMessage = "Gemini Nano ML Kit GenAI is currently bridged for Android development builds only.";
 
 const unsupportedModule: ExpoGeminiNanoNativeModule = {
   async getStatus() {
@@ -44,7 +51,7 @@ const unsupportedModule: ExpoGeminiNanoNativeModule = {
       platform: Platform.OS === "android" || Platform.OS === "ios" || Platform.OS === "web" ? Platform.OS : "unknown",
       imageDescription: "unsupported",
       prompt: "unsupported",
-      message: "Gemini Nano ML Kit GenAI is currently bridged for Android development builds only."
+      message: unsupportedMessage
     };
   },
   async describeImage() {
@@ -58,9 +65,18 @@ const unsupportedModule: ExpoGeminiNanoNativeModule = {
   }
 };
 
-const nativeModule =
-  Platform.OS === "android"
-    ? requireNativeModule<ExpoGeminiNanoNativeModule>("ExpoGeminiNano")
-    : unsupportedModule;
+function loadNativeModule(): ExpoGeminiNanoNativeModule {
+  if (Platform.OS !== "android") {
+    return unsupportedModule;
+  }
+
+  try {
+    return requireNativeModule<ExpoGeminiNanoNativeModule>("ExpoGeminiNano");
+  } catch {
+    return unsupportedModule;
+  }
+}
+
+const nativeModule = loadNativeModule();
 
 export default nativeModule;

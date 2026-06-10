@@ -13,6 +13,14 @@
   "license": "MIT",
   "private": false,
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tpmorg/expo-gemini-nano-module.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tpmorg/expo-gemini-nano-module/issues"
+  },
+  "homepage": "https://github.com/tpmorg/expo-gemini-nano-module#readme",
   "keywords": [
     "expo",
     "react-native",

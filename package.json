@@ -1,0 +1,51 @@
+{
+  "name": "expo-gemini-nano",
+  "version": "0.0.1",
+  "description": "Expo module bridge for Android ML Kit GenAI APIs backed by Gemini Nano.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    }
+  },
+  "license": "MIT",
+  "private": false,
+  "sideEffects": false,
+  "keywords": [
+    "expo",
+    "react-native",
+    "gemini-nano",
+    "ml-kit",
+    "aicore"
+  ],
+  "files": [
+    "android",
+    "build",
+    "src",
+    "expo-module.config.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0",
+    "expo": "~55.0.0",
+    "expo-modules-core": "*",
+    "react-native": "0.83.0",
+    "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

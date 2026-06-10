@@ -1,0 +1,29 @@
+buildscript {
+  ext.safeExtGet = { prop, fallback ->
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  }
+}
+
+plugins {
+  id "com.android.library"
+  id "org.jetbrains.kotlin.android"
+}
+
+group = "expo.modules.gemininano"
+version = "0.0.1"
+
+android {
+  namespace "expo.modules.gemininano"
+  compileSdkVersion safeExtGet("compileSdkVersion", 36)
+
+  defaultConfig {
+    minSdkVersion safeExtGet("minSdkVersion", 26)
+    targetSdkVersion safeExtGet("targetSdkVersion", 36)
+  }
+}
+
+dependencies {
+  implementation project(":expo-modules-core")
+  implementation "com.google.mlkit:genai-image-description:1.0.0-beta1"
+  implementation "com.google.mlkit:genai-prompt:1.0.0-alpha1"
+}

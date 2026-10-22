@@ -43,7 +43,7 @@ type ExpoGeminiNanoNativeModule = {
   warmup(): Promise<GeminiNanoStatus>;
 };
 
-const unsupportedMessage = "Gemini Nano ML Kit GenAI is currently bridged for Android development builds only.";
+const unsupportedMessage = "On-device generation is unavailable on this platform or the native module is not linked.";
 
 const unsupportedModule: ExpoGeminiNanoNativeModule = {
   async getStatus() {
@@ -55,10 +55,10 @@ const unsupportedModule: ExpoGeminiNanoNativeModule = {
     };
   },
   async describeImage() {
-    throw new Error("Gemini Nano image description is only available on Android development builds.");
+    throw new Error("On-device image description is unavailable on this platform or the native module is not linked.");
   },
   async prompt() {
-    throw new Error("Gemini Nano prompt generation is only available on Android development builds.");
+    throw new Error("On-device prompt generation is unavailable on this platform or the native module is not linked.");
   },
   async warmup() {
     return this.getStatus();
@@ -66,7 +66,7 @@ const unsupportedModule: ExpoGeminiNanoNativeModule = {
 };
 
 function loadNativeModule(): ExpoGeminiNanoNativeModule {
-  if (Platform.OS !== "android") {
+  if (Platform.OS !== "android" && Platform.OS !== "ios") {
     return unsupportedModule;
   }
 

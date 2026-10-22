@@ -1,5 +1,8 @@
 {
-  "platforms": ["android"],
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["ExpoGeminiNanoModule"]
+  },
   "android": {
     "modules": ["expo.modules.gemininano.ExpoGeminiNanoModule"]
   }

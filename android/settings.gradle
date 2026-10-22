@@ -1,0 +1,5 @@
+rootProject.name = 'expo-gemini-nano'
+
+include ':app'
+include ':expo-gemini-nano'
+project(':expo-gemini-nano').projectDir = new File(rootProject.projectDir, '.')
